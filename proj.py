@@ -3,9 +3,6 @@ import re
 import argparse
 import numpy as np
 
-TWEET_FILE_NAME = "tinyTwitter.json"
-GRID_FILE_NAME = "melbGrid.json"
-
 # Obtaining args from terminal
 def get_args():
     
