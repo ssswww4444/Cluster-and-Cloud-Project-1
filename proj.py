@@ -1,17 +1,36 @@
 import json
+import re
+import argparse
+import numpy as np
 
-TWEET_FILE_NAME = "tinyTwitter_pretty.json"
+TWEET_FILE_NAME = "tinyTwitter.json"
 GRID_FILE_NAME = "melbGrid.json"
 
-def read_grid():
-    with open(GRID_FILE_NAME, "r") as f:
+# Obtaining args from terminal
+def get_args():
+    
+    parser = argparse.ArgumentParser(description="Extract features for files in the directory using openSMILE")
+    
+    # filenames
+    parser.add_argument("-t", "--tweet_file", type = str, required = True, help = "Twitter data file")
+    parser.add_argument("-g", "--grid_file", type = str, required = True, help = "Grid data file")
+
+    args = parser.parse_args()
+    
+    return args
+
+def read_grid(grid_file):
+    with open(grid_file, "r") as f:
         grid_data = json.load(f)
         f.close()
     return grid_data
 
-def read_tweet():
-    with open(TWEET_FILE_NAME, "r") as f:
-        tweet_data = json.load(f)
+def read_tweet(tweet_file):
+    with open(tweet_file, "r") as f:
+        tweet_data = []
+        for line in f:
+            fixed_line = re.sub(r"ObjectId\( (.*) \)", r"\g<1>",line)
+            tweet_data.append(json.loads(fixed_line))
         f.close()
     return tweet_data
 
@@ -81,8 +100,11 @@ def stat_tweet(tweet_data):
 
 def main():
 
-    tweet_data = read_tweet()
-    grid_data = read_grid()
+    args = get_args()
+
+    # list of dict
+    tweet_data = read_tweet(args.tweet_file)
+    grid_data = read_grid(args.grid_file)
 
     filtered_tweet_data = get_filtered_tweets(tweet_data, grid_data)
 
@@ -101,7 +123,6 @@ def main():
         hashtag_dict = tuple[1]["hashtags"]
         hashtag_ls = sorted(hashtag_dict.items(), key=lambda x: x[1], reverse = True)[:5]  # take top 5
         print("{}: {}".format(tuple[0], hashtag_ls))
-
 
 # If running the file directly
 if __name__ == "__main__":
