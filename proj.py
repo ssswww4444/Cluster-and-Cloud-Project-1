@@ -2,11 +2,14 @@ import json
 import re
 import argparse
 import numpy as np
+from mpi4py import MPI
+import sys
+import time
 
 # Obtaining args from terminal
 def get_args():
     
-    parser = argparse.ArgumentParser(description="Extract features for files in the directory using openSMILE")
+    parser = argparse.ArgumentParser(description="Processing tweets")
     
     # filenames
     parser.add_argument("-t", "--tweet_file", type = str, required = True, help = "Twitter data file")
@@ -97,6 +100,8 @@ def stat_tweet(tweet_data):
 
 def main():
 
+    start_time = time.time()
+
     args = get_args()
 
     # list of dict
@@ -120,6 +125,16 @@ def main():
         hashtag_dict = tuple[1]["hashtags"]
         hashtag_ls = sorted(hashtag_dict.items(), key=lambda x: x[1], reverse = True)[:5]  # take top 5
         print("{}: {}".format(tuple[0], hashtag_ls))
+
+    elapse_time = time.time() - start_time
+    print("elapse_time: {0:.2f} ms".format(elapse_time*1000))
+
+    # elapse_time = int(time.time() - start_time)
+    # print("elapse_time: " + 
+    #       "{:02d}:{:02d}:{:02d}".format(
+    #           elapse_time // 3600, 
+    #           elapse_time % 3600 // 60, 
+    #           elapse_time % 60))
 
 # If running the file directly
 if __name__ == "__main__":
