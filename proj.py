@@ -1,10 +1,11 @@
 import json
-import re
 import argparse
 import numpy as np
 from mpi4py import MPI
-import sys
 import time
+
+# CONSTANTS
+TOTAL_GRID_NUM = 16
 
 # Obtaining args from terminal
 def get_args():
@@ -21,23 +22,46 @@ def get_args():
 
 def read_grid(grid_file):
     with open(grid_file, "r") as f:
-        grid_data = json.load(f)
+        grid_data = json.load(f)["features"]
         f.close()
     return grid_data
 
-def read_tweet(tweet_file):
-    with open(tweet_file, "r") as f:
+def fix_line(line):
+    # need to end with "}"
+    i = -1
+    while line[i] != "}":
+        i -= 1
+    return line[:i+1]
+
+def read_tweet(tweet_file, rank, size):
+
+    with open(tweet_file, "r", encoding="utf-8") as f:
+
+        # remove the header line
         tweet_data = []
-        for line in f:
-            fixed_line = re.sub(r"ObjectId\( (.*) \)", r"\g<1>",line)
-            tweet_data.append(json.loads(fixed_line))
+        for i, line in enumerate(f):
+
+            # first / last line
+            if i == 0 or (i % (size) != rank):  # assign line according to the rank
+                continue
+            elif line[0] != "{":
+                continue
+                
+            old_dict = json.loads(fix_line(line))["doc"]
+
+            # only using the coordinates and hashtags info of tweets
+            new_dict = {"coordinates": old_dict["coordinates"], 
+                        "hashtags": old_dict["entities"]["hashtags"]}
+            tweet_data.append(new_dict)
         f.close()
     return tweet_data
 
 def get_tweet_grid(coordinate, grid_data):
-    grids = grid_data["features"]
 
-    for grid in grids:
+    # representing each grid by a number
+    grid_num = 0
+
+    for grid in grid_data:
         # 4 points of each grid
         xmin = grid["properties"]["xmin"]
         xmax = grid["properties"]["xmax"]
@@ -49,85 +73,126 @@ def get_tweet_grid(coordinate, grid_data):
 
         # not need to deal with the boundary problem because of the order of the grids
         if x >= xmin and x <= xmax and y >= ymin and y <= ymax:
-            return grid["properties"]["id"]
+            return grid_num
+        
+        grid_num += 1
 
     # not in any grid
-    return "Other"
+    return -1
 
-def get_filtered_tweets(tweet_data, grid_data):
+def stat_tweet(tweet_data, grid_data):
 
-    filtered_tweet_data = []
+    grid_post_count = np.zeros(TOTAL_GRID_NUM, dtype=int)
+    grid_hashtag_dict = {}
+
+    # initialise empty hashtag dict for all grids
+    for i in range(TOTAL_GRID_NUM):
+        grid_hashtag_dict[i] = {}
 
     # iterate through each tweet
     for tweet in tweet_data:
 
-        # coordinates
+        # **************** TASK 1 ****************
+
+        # skip this tweet if no coordinates
         if tweet["coordinates"] == None:
-            continue   # skip this tweet if no coordinates
-        coordinates = tweet["coordinates"]["coordinates"]
+            continue   
 
-        grid = get_tweet_grid(coordinates, grid_data)
-
+        grid_id = get_tweet_grid(tweet["coordinates"]["coordinates"], grid_data)
         # skip this tweet if not in the grids
-        if grid == "Other":
+        if grid_id == -1:
             continue
 
-        # hashtags
-        hashtags = tweet["entities"]["hashtags"]
+        # count post
+        grid_post_count[grid_id] += 1
 
-        # only using the grid and hashtags info of tweets
-        filtered_tweet_data.append({"grid": grid, "hashtags": hashtags})
-
-    return filtered_tweet_data
-
-def stat_tweet(tweet_data):
-    grid_dict = {}
-    for tweet in tweet_data:
-        grid = tweet["grid"]
-        
-        if grid not in grid_dict:
-            grid_dict[grid] = {"num_posts": 0, "hashtags": {}}
-
-        # increment the number of posts
-        grid_dict[grid]["num_posts"] = grid_dict[grid]["num_posts"] + 1
+        # **************** TASK 2 ****************
 
         # add hashtags if available
         for hashtag in tweet["hashtags"]:
-            text = hashtag["text"]
-            grid_dict[grid]["hashtags"][text] = grid_dict[grid]["hashtags"].get(text, 0) + 1   
+            text = hashtag["text"].lower()     # not case sensitive
+            grid_hashtag_dict[grid_id][text] = grid_hashtag_dict[grid_id].get(text, 0) + 1   
 
-    return grid_dict
+    return grid_post_count, grid_hashtag_dict
+
+def get_grid_ls(grid_data, grid_post_count, grid_hashtag_dict):
+    grid_dict = {}
+    for i in range(TOTAL_GRID_NUM):
+        grid_id = grid_data[i]["properties"]["id"]
+        grid_dict[grid_id] = {"post_num": grid_post_count[i], "hashtags": grid_hashtag_dict[i]}
+
+    grid_ls = sorted(grid_dict.items(), key=lambda x: x[1]["post_num"], reverse = True)
+
+    return grid_ls
+
+def print_tasks(grid_ls):
+    # TASK 1
+    print("TASK - 1")
+    for grid_tuple in grid_ls:
+        print("{}: {} posts".format(grid_tuple[0], grid_tuple[1]["post_num"]))
+
+    print("-------------")
+
+    # TASK 2
+    print("TASK - 2")
+    for grid_tuple in grid_ls:
+        hashtag_dict = grid_tuple[1]["hashtags"]
+
+        # gather by master
+
+        hashtag_ls = sorted(hashtag_dict.items(), key=lambda x: x[1], reverse = True)[:5]  # take top 5
+        print("{}: {}".format(grid_tuple[0], hashtag_ls))
+    
 
 def main():
 
+    # time
     start_time = time.time()
 
     args = get_args()
 
-    # list of dict
-    tweet_data = read_tweet(args.tweet_file)
+    # MPI: mpi4py
+    comm = MPI.COMM_WORLD         # every process
+    comm_rank = comm.Get_rank()   # rank of this process
+    comm_size = comm.Get_size()   # total num of processes
+
+    # list of dicts
+    tweet_data = read_tweet(args.tweet_file, comm_rank, comm_size)
     grid_data = read_grid(args.grid_file)
 
-    filtered_tweet_data = get_filtered_tweets(tweet_data, grid_data)
-
     # get statistics
-    grid_dict = stat_tweet(filtered_tweet_data)
-    grid_ls = sorted(grid_dict.items(), key=lambda x: x[1]["num_posts"], reverse = True)
+    grid_post_count, grid_hashtag_dict = stat_tweet(tweet_data, grid_data)
 
-    # TASK 1
-    print("TASK - 1")
-    for tuple in grid_ls:
-        print("{}: {} posts".format(tuple[0], tuple[1]["num_posts"]))
-        
-    # TASK 2
-    print("TASK - 2")
-    for tuple in grid_ls:
-        hashtag_dict = tuple[1]["hashtags"]
-        hashtag_ls = sorted(hashtag_dict.items(), key=lambda x: x[1], reverse = True)[:5]  # take top 5
-        print("{}: {}".format(tuple[0], hashtag_ls))
+    # *************** REDUCE **************
 
-    elapse_time = time.time() - start_time
-    print("elapse_time: {0:.2f} ms".format(elapse_time*1000))
+    reduced_post_count = None
+    if comm_rank == 0:
+        reduced_post_count = np.zeros(TOTAL_GRID_NUM, dtype=int)
+    
+    comm.Reduce(grid_post_count, reduced_post_count, op=MPI.SUM, root=0)
+
+    # ************* GATHER ***************
+
+    gathered_hashtag_dict = comm.gather(grid_hashtag_dict, root=0)
+
+    if comm_rank == 0:
+
+        # gathered as a list of dictionaries
+        final_hashtag_dict = gathered_hashtag_dict[0]
+
+        for agrid_hashtag_dict in gathered_hashtag_dict[1:]:   # agrid_hashtag_dict from each process
+            for grid_id, hashtag_dict in agrid_hashtag_dict.items():   # hashtag_dict for each grid
+                for hashtag, count in hashtag_dict.items():
+                    final_hashtag_dict[grid_id][hashtag] = final_hashtag_dict[grid_id].get(hashtag, 0) + count 
+
+        # put into a dict
+        grid_ls = get_grid_ls(grid_data, reduced_post_count, final_hashtag_dict)
+
+        # print tasks
+        print_tasks(grid_ls)
+
+        elapse_time = time.time() - start_time
+        print("elapse_time: {0:.2f} ms".format(elapse_time*1000))
 
     # elapse_time = int(time.time() - start_time)
     # print("elapse_time: " + 
