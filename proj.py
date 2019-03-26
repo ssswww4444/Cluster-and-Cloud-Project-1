@@ -139,6 +139,22 @@ def print_tasks(grid_ls):
 
         hashtag_ls = sorted(hashtag_dict.items(), key=lambda x: x[1], reverse = True)[:5]  # take top 5
         print("{}: {}".format(grid_tuple[0], tuple(hashtag_ls)))
+
+
+def handle_gathered_dict(gathered_hashtag_dict_ls):
+    # gathered as a list of dictionaries
+    final_hashtag_dict = gathered_hashtag_dict_ls[0]
+
+    for agrid_hashtag_dict in gathered_hashtag_dict_ls[1:]:        # agrid_hashtag_dict from each process
+        for grid_id, hashtag_dict in agrid_hashtag_dict.items():   # hashtag_dict for each grid
+            for hashtag, count in hashtag_dict.items():
+                final_hashtag_dict[grid_id][hashtag] = final_hashtag_dict[grid_id].get(hashtag, 0) + count 
+
+    # put into a dict
+    grid_ls = get_grid_ls(grid_data, reduced_post_count, final_hashtag_dict)
+
+    # print tasks
+    print_tasks(grid_ls)
     
 
 def main():
@@ -170,20 +186,9 @@ def main():
     gathered_hashtag_dict_ls = comm.gather(grid_hashtag_dict, root=0)
 
     if comm_rank == 0:
+        handle_gathered_dict(gathered_hashtag_dict_ls)
 
-        # gathered as a list of dictionaries
-        final_hashtag_dict = gathered_hashtag_dict_ls[0]
-
-        for agrid_hashtag_dict in gathered_hashtag_dict_ls[1:]:        # agrid_hashtag_dict from each process
-            for grid_id, hashtag_dict in agrid_hashtag_dict.items():   # hashtag_dict for each grid
-                for hashtag, count in hashtag_dict.items():
-                    final_hashtag_dict[grid_id][hashtag] = final_hashtag_dict[grid_id].get(hashtag, 0) + count 
-
-        # put into a dict
-        grid_ls = get_grid_ls(grid_data, reduced_post_count, final_hashtag_dict)
-
-        # print tasks
-        print_tasks(grid_ls)
+        
 
 # If running the file directly
 if __name__ == "__main__":
