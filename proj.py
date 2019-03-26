@@ -4,9 +4,6 @@ import numpy as np
 from mpi4py import MPI
 import time
 
-# CONSTANTS
-TOTAL_GRID_NUM = 16
-
 # Obtaining args from terminal
 def get_args():
     
@@ -82,11 +79,11 @@ def get_tweet_grid(coordinate, grid_data):
 
 def stat_tweet(tweet_data, grid_data):
 
-    grid_post_count = np.zeros(TOTAL_GRID_NUM, dtype=int)
+    grid_post_count = np.zeros(len(grid_data), dtype=int)
     grid_hashtag_dict = {}
 
     # initialise empty hashtag dict for all grids
-    for i in range(TOTAL_GRID_NUM):
+    for i in range(len(grid_data)):
         grid_hashtag_dict[i] = {}
 
     # iterate through each tweet
@@ -110,14 +107,14 @@ def stat_tweet(tweet_data, grid_data):
 
         # add hashtags if available
         for hashtag in tweet["hashtags"]:
-            text = hashtag["text"].lower()     # not case sensitive
+            text = "#" + hashtag["text"].lower()     # not case sensitive
             grid_hashtag_dict[grid_id][text] = grid_hashtag_dict[grid_id].get(text, 0) + 1   
 
     return grid_post_count, grid_hashtag_dict
 
 def get_grid_ls(grid_data, grid_post_count, grid_hashtag_dict):
     grid_dict = {}
-    for i in range(TOTAL_GRID_NUM):
+    for i in range(len(grid_data)):
         grid_id = grid_data[i]["properties"]["id"]
         grid_dict[grid_id] = {"post_num": grid_post_count[i], "hashtags": grid_hashtag_dict[i]}
 
@@ -141,13 +138,10 @@ def print_tasks(grid_ls):
         # gather by master
 
         hashtag_ls = sorted(hashtag_dict.items(), key=lambda x: x[1], reverse = True)[:5]  # take top 5
-        print("{}: {}".format(grid_tuple[0], hashtag_ls))
+        print("{}: {}".format(grid_tuple[0], tuple(hashtag_ls)))
     
 
 def main():
-
-    # time
-    start_time = time.time()
 
     args = get_args()
 
@@ -167,20 +161,20 @@ def main():
 
     reduced_post_count = None
     if comm_rank == 0:
-        reduced_post_count = np.zeros(TOTAL_GRID_NUM, dtype=int)
+        reduced_post_count = np.zeros(len(grid_data), dtype=int)
     
     comm.Reduce(grid_post_count, reduced_post_count, op=MPI.SUM, root=0)
 
     # ************* GATHER ***************
 
-    gathered_hashtag_dict = comm.gather(grid_hashtag_dict, root=0)
+    gathered_hashtag_dict_ls = comm.gather(grid_hashtag_dict, root=0)
 
     if comm_rank == 0:
 
         # gathered as a list of dictionaries
-        final_hashtag_dict = gathered_hashtag_dict[0]
+        final_hashtag_dict = gathered_hashtag_dict_ls[0]
 
-        for agrid_hashtag_dict in gathered_hashtag_dict[1:]:   # agrid_hashtag_dict from each process
+        for agrid_hashtag_dict in gathered_hashtag_dict_ls[1:]:        # agrid_hashtag_dict from each process
             for grid_id, hashtag_dict in agrid_hashtag_dict.items():   # hashtag_dict for each grid
                 for hashtag, count in hashtag_dict.items():
                     final_hashtag_dict[grid_id][hashtag] = final_hashtag_dict[grid_id].get(hashtag, 0) + count 
@@ -190,16 +184,6 @@ def main():
 
         # print tasks
         print_tasks(grid_ls)
-
-        elapse_time = time.time() - start_time
-        print("elapse_time: {0:.2f} ms".format(elapse_time*1000))
-
-    # elapse_time = int(time.time() - start_time)
-    # print("elapse_time: " + 
-    #       "{:02d}:{:02d}:{:02d}".format(
-    #           elapse_time // 3600, 
-    #           elapse_time % 3600 // 60, 
-    #           elapse_time % 60))
 
 # If running the file directly
 if __name__ == "__main__":
