@@ -128,7 +128,7 @@ def print_tasks(grid_ls):
     for grid_tuple in grid_ls:
         print("{}: {} posts".format(grid_tuple[0], grid_tuple[1]["post_num"]))
 
-    print("-------------")
+    print("\n")
 
     # TASK 2
     print("TASK - 2")
@@ -141,7 +141,7 @@ def print_tasks(grid_ls):
         print("{}: {}".format(grid_tuple[0], tuple(hashtag_ls)))
 
 
-def handle_gathered_dict(gathered_hashtag_dict_ls):
+def handle_gathered_dict(grid_data, reduced_post_count, gathered_hashtag_dict_ls):
     # gathered as a list of dictionaries
     final_hashtag_dict = gathered_hashtag_dict_ls[0]
 
@@ -153,8 +153,7 @@ def handle_gathered_dict(gathered_hashtag_dict_ls):
     # put into a dict
     grid_ls = get_grid_ls(grid_data, reduced_post_count, final_hashtag_dict)
 
-    # print tasks
-    print_tasks(grid_ls)
+    return grid_ls
     
 
 def main():
@@ -165,6 +164,8 @@ def main():
     comm = MPI.COMM_WORLD         # every process
     comm_rank = comm.Get_rank()   # rank of this process
     comm_size = comm.Get_size()   # total num of processes
+
+    print("this is process: " + str(comm_rank))
 
     # list of dicts
     tweet_data = read_tweet(args.tweet_file, comm_rank, comm_size)
@@ -186,9 +187,9 @@ def main():
     gathered_hashtag_dict_ls = comm.gather(grid_hashtag_dict, root=0)
 
     if comm_rank == 0:
-        handle_gathered_dict(gathered_hashtag_dict_ls)
-
-        
+        grid_ls = handle_gathered_dict(grid_data, reduced_post_count, gathered_hashtag_dict_ls)
+        # print tasks
+        print_tasks(grid_ls)
 
 # If running the file directly
 if __name__ == "__main__":
