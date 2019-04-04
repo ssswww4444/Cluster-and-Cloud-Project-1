@@ -4,26 +4,25 @@ import numpy as np
 from mpi4py import MPI
 import time
 
-# Obtaining args from terminal
 def get_args():
-    
+    """ Obtaining args from terminal """
     parser = argparse.ArgumentParser(description="Processing tweets")
-    
     # filenames
     parser.add_argument("-t", "--tweet_file", type = str, required = True, help = "Twitter data file")
     parser.add_argument("-g", "--grid_file", type = str, required = True, help = "Grid data file")
-
     args = parser.parse_args()
     
     return args
 
 def read_grid(grid_file):
+    """ Read grid data from file """
     with open(grid_file, "r") as f:
         grid_data = json.load(f)["features"]
         f.close()
     return grid_data
 
 def fix_line(line):
+    """ Fix the line readed for coverting into json """
     # need to end with "}"
     i = -1
     while line[i] != "}":
@@ -31,7 +30,7 @@ def fix_line(line):
     return line[:i+1]
 
 def read_tweet(tweet_file, rank, size):
-
+    """ Read twitter data from file """
     with open(tweet_file, "r", encoding="utf-8") as f:
 
         # remove the header line
@@ -54,7 +53,7 @@ def read_tweet(tweet_file, rank, size):
     return tweet_data
 
 def get_tweet_grid(coordinate, grid_data):
-
+    """ Check which grid the tweet is in """
     # representing each grid by a number
     grid_num = 0
 
@@ -78,7 +77,10 @@ def get_tweet_grid(coordinate, grid_data):
     return -1
 
 def stat_tweet(tweet_data, grid_data):
-
+    """ Find statistics for both task 1 and 2
+    Task 1 - post counts for each grid
+    Task 2 - top 5 hashtags for each grid 
+    """
     grid_post_count = np.zeros(len(grid_data), dtype=int)
     grid_hashtag_dict = {}
 
@@ -113,6 +115,7 @@ def stat_tweet(tweet_data, grid_data):
     return grid_post_count, grid_hashtag_dict
 
 def get_grid_ls(grid_data, grid_post_count, grid_hashtag_dict):
+    """ Make the result list for the grids """
     grid_dict = {}
     for i in range(len(grid_data)):
         grid_id = grid_data[i]["properties"]["id"]
@@ -123,6 +126,7 @@ def get_grid_ls(grid_data, grid_post_count, grid_hashtag_dict):
     return grid_ls
 
 def print_tasks(grid_ls):
+    """ Print both results of task 1 and task 2 """
     # TASK 1
     print("TASK - 1")
     for grid_tuple in grid_ls:
@@ -140,8 +144,8 @@ def print_tasks(grid_ls):
         hashtag_ls = sorted(hashtag_dict.items(), key=lambda x: x[1], reverse = True)[:5]  # take top 5
         print("{}: {}".format(grid_tuple[0], tuple(hashtag_ls)))
 
-
 def handle_gathered_dict(grid_data, reduced_post_count, gathered_hashtag_dict_ls):
+    """ Combine the gathered dictionary and convert into a list """
     # gathered as a list of dictionaries
     final_hashtag_dict = gathered_hashtag_dict_ls[0]
 
@@ -155,8 +159,8 @@ def handle_gathered_dict(grid_data, reduced_post_count, gathered_hashtag_dict_ls
 
     return grid_ls
     
-
 def main():
+    """ main function of this program """
 
     args = get_args()
 
@@ -191,6 +195,6 @@ def main():
         # print tasks
         print_tasks(grid_ls)
 
-# If running the file directly
 if __name__ == "__main__":
+    """ If running the file directly """
     main()
