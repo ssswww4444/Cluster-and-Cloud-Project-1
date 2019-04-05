@@ -38,6 +38,7 @@ def get_hashtags(text):
     for word in word_ls[start:end]:
         if word[0] == "#":
             hashtags.add(word.lower())
+
     return list(hashtags)
 
 def get_coordinates(tweet):
