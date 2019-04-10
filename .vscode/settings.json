@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "/Users/peiyuns/anaconda2/envs/python3/bin/python",
+    "python.pythonPath": "/usr/bin/python",
     "remotefs.rootLabel": "${Spartan} — (Remote)"
 }
