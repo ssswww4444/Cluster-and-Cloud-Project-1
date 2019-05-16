@@ -99,15 +99,24 @@ def get_tweet_grid(coordinates, grid_data):
 
 
 def read_tweet(tweet_file, grid_data, rank, size):
-    """ Read twitter data from file """
+    """ Read twitter data from file and get post counts & hashtags """
+
+    # numpy array for post count
+    grid_post_count = np.zeros(len(grid_data), dtype=int)
+
+    # dict of hashtags for each grid
+    grid_hashtag_dict = {}
+    for i in range(len(grid_data)):
+        grid_hashtag_dict[i] = Counter()
+
     with open(tweet_file, "r", encoding="utf-8") as f:
 
-        tweet_data = []
+        # remove the header line
         for i, line in enumerate(f):
 
-            if i == 0 or line[0] != "{":  # assign line according to the rank
+            if i == 0 or line[0] != "{":  # first or last line
                 continue
-            elif (i % (size) != rank):    # first or last line
+            elif (i % size != rank):    # assign line according to the rank
                 continue
 
             tweet = json.loads(fix_line(line))
@@ -124,16 +133,17 @@ def read_tweet(tweet_file, grid_data, rank, size):
             if grid == -1:
                 continue
 
+            # get a counter for hashtags in this tweet
             hashtags = get_hashtags(tweet["doc"]["text"])
 
-            # only using the grid and hashtags info of tweets
-            filtered_dict = {"grid": grid, 
-                             "hashtags": hashtags}
+            # task 1 & task 2
+            grid_post_count[grid] += 1
+            for hashtag in hashtags:
+                grid_hashtag_dict[grid][hashtag] += 1
 
-            tweet_data.append(filtered_dict)
         f.close()
 
-    return tweet_data
+    return grid_post_count, grid_hashtag_dict
 
 def read_grid(grid_file):
     """ Read grid data from file """
@@ -143,34 +153,6 @@ def read_grid(grid_file):
         f.close()
 
     return grid_data
-
-def stat_tweet(tweet_data, num_grid):
-    """ Find statistics for both task 1 and 2
-    Task 1 - post counts for each grid
-    Task 2 - top 5 hashtags for each grid 
-    """
-    # numpy array for post count
-    grid_post_count = np.zeros(num_grid, dtype=int)
-    grid_hashtag_dict = {}
-    for i in range(num_grid):
-        grid_hashtag_dict[i] = Counter()
-
-    # iterate through each tweet
-    for tweet in tweet_data:
-
-        # **************** TASK 1 ****************
-
-        # count post
-        grid_id = tweet["grid"]
-        grid_post_count[grid_id] += 1
-
-        # **************** TASK 2 ****************
-
-        # add hashtags if available
-        for hashtag in tweet["hashtags"]:
-            grid_hashtag_dict[grid_id][hashtag] += 1 
-
-    return grid_post_count, grid_hashtag_dict
 
 def get_grid_ls(grid_data, grid_post_count, grid_hashtag_dict):
     """ Make the result list for the grids """
@@ -248,12 +230,8 @@ def main():
     comm_rank = comm.Get_rank()   # rank of this process
     comm_size = comm.Get_size()   # total num of processes
 
-    # list of dicts
     grid_data = read_grid(args.grid_file)
-    tweet_data = read_tweet(args.tweet_file, grid_data, comm_rank, comm_size)
-
-    # get statistics
-    grid_post_count, grid_hashtag_dict = stat_tweet(tweet_data, len(grid_data))
+    grid_post_count, grid_hashtag_dict = read_tweet(args.tweet_file, grid_data, comm_rank, comm_size)
 
     # *************** REDUCE **************
 

@@ -1,0 +1,82 @@
+using 1 node with 1 core
+Process tinyTwitter.json
+cloud partition
+TASK - 1
+----------
+C2: 573 posts
+D3: 281 posts
+C3: 141 posts
+
+
+TASK - 2
+----------
+C2: (('#melbourne', 46), ('#beach', 24), ('#australia', 14), ('#sunset', 13), ('#brighton', 9))
+D3: (('#melbourne', 15), ('#beach', 15), ('#summer', 10), ('#australia', 7), ('#blackrock', 6), ('#sandringham.', 5))
+C3: (('#melbourne', 4), ('#avfc', 2), ('#sandringham.', 2), ('#40s', 1), ('#jazz', 1), ('#music', 1), ('#singingtrio', 1), ('#retro', 1), ('#entertainment', 1), ('#vintage', 1), ('#party', 1), ('#superfoods', 1), ('#healthy…', 1), ('#lunch', 1), ('#berries', 1), ('#smoothies', 1), ('#granola', 1), ('#yogurt', 1), ('#amoshair…', 1), ('#lovegoodcoffee', 1), ('#merrychristmas', 1), ('#vidalifestyle', 1), ('#chiropractic…', 1), ('#health', 1), ('#happyfamily', 1), ('#thatrainkissthough', 1), ('#swimwithsharks', 1), ('#firstedition', 1), ('#howsayingno.', 1), ('#strava', 1), ('#endorphins', 1), ('#endomondo', 1), ('#melbweather', 1), ('#foodcoma', 1), ('#hellenicrepublic', 1), ('#saganaki', 1), ('#socialmedia', 1), ('#febfast', 1), ('#livethedream', 1), ('#vafa…', 1), ('#empowering', 1), ('#changemakers', 1), ('#diversity', 1), ('#sandyzebras', 1), ('#repost', 1), ('#research', 1), ('#evaluation', 1), ('#sme', 1), ('#socent', 1), ('#daylightsavings', 1), ('#tuesday', 1), ('#privatebeach', 1), ('#sunset', 1), ('#blackrock', 1), ('#herewego', 1), ('#vb', 1), ('#sundaysesh', 1), ('#teamireland', 1), ('#bernieshithebeach', 1), ('#mufc', 1), ('#unitethebeetsons', 1), ('#longlost', 1), ('#qanda', 1), ('#isitart', 1), ('#latergram', 1), ('#hampton', 1), ('#linacreroad', 1))
+
+real	0m1.246s
+user	0m0.023s
+sys	0m0.037s
+
+Process smallTwitter.json
+TASK - 1
+----------
+C2: 3985 posts
+C3: 2729 posts
+D3: 281 posts
+
+
+TASK - 2
+----------
+C2: (('#melbourne', 309), ('#beach', 122), ('#brightonbeach', 121), ('#brighton', 120), ('#australia', 118))
+C3: (('#melbourne', 28), ('#hampton', 8), ('#food', 7), ('#brighton', 7), ('#bnw', 6), ('#photography', 6), ('#monochrome', 6), ('#run', 6), ('#yum', 5), ('#charcoal', 5), ('#bw', 5), ('#streetphotography…', 5), ('#community', 5), ('#brightoneast.', 5), ('#plank', 5), ('#planking', 5), ('#b12hr', 5))
+D3: (('#melbourne', 15), ('#beach', 15), ('#summer', 10), ('#australia', 7), ('#blackrock', 6), ('#sandringham.', 5))
+
+real	0m1.350s
+user	0m0.020s
+sys	0m0.032s
+
+Process bigTwitter.json
+TASK - 1
+----------
+C2: 145096 posts
+B2: 79633 posts
+C3: 53299 posts
+B3: 26550 posts
+C4: 19699 posts
+B1: 16507 posts
+D4: 14497 posts
+D3: 13388 posts
+C1: 8427 posts
+B4: 5450 posts
+A3: 5036 posts
+A2: 4165 posts
+C5: 4106 posts
+D5: 3248 posts
+A1: 2533 posts
+A4: 310 posts
+
+
+TASK - 2
+----------
+C2: (('#melbourne', 10385), ('#australia', 1534), ('#job', 1390), ('#jobs', 964), ('#melbourne…', 505))
+B2: (('#melbourne', 840), ('#australia', 156), ('#auspol', 148), ('#brunswick', 94), ('#fitzroy', 88))
+C3: (('#melbourne', 488), ('#australia', 144), ('#coffee', 102), ('#oneorigin_specialtycoffee', 71), ('#food', 70))
+B3: (('#melbourne', 168), ('#australia', 60), ('#fitness', 54), ('#pocus', 50), ('#fashion', 41), ('#health', 41))
+C4: (('#alishas1million', 96), ('#vote5sos', 85), ('#melbourne', 82), ('#auspol', 75), ('#kca', 44))
+B1: (('#melbourne', 176), ('#', 74), ('#kca', 72), ('#australia', 60), ('#bds', 49))
+D4: (('#nowplaying', 1730), ('#melbourne', 30), ('#dandenong.', 27), ('#job', 26), ('#jobs', 22))
+D3: (('#melbourne', 80), ('#beach', 59), ('#summer', 29), ('#australia', 23), ('#followmenash', 21))
+C1: (('#camto4mill', 72), ('#christmasfollowparty', 62), ('#jamesyamm', 58), ('#askbeau', 53), ('#melbourne', 51))
+B4: (('#melbourne', 33), ('#smallzywelcomeshome5sos', 26), ('#fire', 19), ('#vicfires', 19), ('#socialmedia', 18), ('#vote5sos', 16))
+A3: (('#vicfires', 19), ('#saveconstantine', 12), ('#epping.', 11), ('#girls', 10), ('#love', 8))
+A2: (('#krazykristmas', 165), ('#egsholidaygiveaway', 57), ('#rcl1milliongiveaway', 53), ('#vdaywithbeth', 37), ('#craigieburn.', 31), ('#egholidaygiveaway', 31))
+C5: (('#melbourne', 53), ('#australia', 17), ('#dandenongs', 14), ('#travel', 13), ('#1000steps', 12))
+D5: (('#cat,', 25), ('#somebodytocon', 23), ('#melbourne', 22), ('#lost', 20), ('#voteukvampettes', 18))
+A1: (('#melbourne', 14), ('#tattoo', 11), ('#worldjudo2014', 9), ('#judo', 8), ('#vobis', 8), ('#my', 8), ('#design', 8), ('#drawing', 8), ('#bigbrother', 6), ('#bbau', 6), ('#tattoolife', 6))
+A4: (('#lnp', 4), ('#qldvotes', 3), ('#vicfires', 3), ('#market', 2), ('#laughterclass', 2), ('#birthday', 2), ('#community', 2), ('#joy', 2), ('#mytribe', 2), ('#commgames', 1), ('#jaffles.', 1), ('#labfun', 1), ('#labwet', 1), ('#labswim', 1), ('#labiam', 1), ('#fromwhereiride', 1), ('#win', 1), ('#icebucketchallenge', 1), ('#loseweight', 1), ('#steamtrain', 1), ('#herbalife', 1), ('#', 1), ('#ball', 1), ('#high', 1), ('#intensity', 1), ('#fast', 1), ('#comon', 1), ('#dinner', 1), ('#igersmelbourne', 1), ('#igersdaily', 1), ('#vsco', 1), ('#igers', 1), ('#vscocam', 1), ('#victoria…', 1), ('#hawthorn', 1), ('#do', 1), ('#always', 1), ('#getaway', 1), ('#standrews', 1), ('#paddocktoplate', 1), ('#vicvotes', 1), ('#fisher.', 1), ('#classof2014', 1), ('#vce', 1), ('#cycling', 1), ('#sbs가요대전', 1), ('#kriskringle', 1), ('#smashit', 1), ('#incident,', 1), ('#fringies', 1), ('#craftbeer.', 1), ('#qldelection?', 1), ('#screecher', 1), ('#ausopen?', 1), ('#socceroos,watch', 1), ('#auspol', 1), ('#libspill', 1), ('#lnp,', 1), ('#labour', 1), ('#win!', 1), ('#goingdownswinging', 1), ('#whitenightmelb', 1), ('#operation', 1), ('#good', 1), ('#speedy', 1), ('#bachiewood', 1), ('#buskin', 1), ('#melbourne', 1), ('#healing', 1), ('#rainforest', 1), ('#guitar', 1), ('#earlyaf', 1), ('#banter💯', 1), ('#🚴🏻💥', 1), ('#hurstbridge', 1), ('#wellspent', 1), ('#lovinglifeinaus…', 1), ('#jan1st', 1), ('#inclusion…', 1), ('#happiness', 1), ('#diversity', 1), ('#acceptance…', 1), ('#inclusion', 1), ('#rainyevening', 1), ('#beautyeverywhere…', 1), ('#australianbush', 1), ('#ilovewinter', 1), ('#nature', 1), ('#australia', 1), ('#winter', 1))
+
+real	3m50.047s
+user	0m0.028s
+sys	0m0.030s
+
